@@ -12,10 +12,30 @@ namespace SampleQuartz
 {
     class Program
     {
+        private static IScheduler scheduler;
+        private static HolidayCalendar calandar;
+
         static void Main(string[] args)
         {
-            MainAsync().Wait();
+            Task.Run(()=> {
+                MainAsync().Wait();
+           var canlendar = scheduler.GetCalendar("holidayCalendar").GetAwaiter().GetResult() as DailyCalendar;
+                // canlendar.AddExcludedDate(DateTime.Today);
+                canlendar.SetTimeRange(DateBuilder.DateOf(22, 56, 0).DateTime,
+                                                            DateBuilder.DateOf(23, 06, 0).DateTime);
+                //DailyCalendar dailyCalendar = new DailyCalendar(DateBuilder.DateOf(22, 56, 0).DateTime,
+                //                                         DateBuilder.DateOf(23, 0, 0).DateTime);
+                Console.WriteLine("holidayCalendar");
+            });
+          //  Task.Delay(TimeSpan.FromSeconds(3)).Wait();
+            //   var calandar = new HolidayCalendar();
+          
+            //    scheduler.DeleteCalendar("holidayCalendar");
+            //     scheduler.GetCalendarNames
+            //  calandar.AddExcludedDate()
+            //    scheduler.AddCalendar("holidayCalendar", calandar, false, false).Wait();
 
+            Task.Delay(TimeSpan.FromSeconds(100)).Wait();
             //等待输入，阻塞应用程序退出
             Console.ReadKey();
         }
@@ -23,24 +43,25 @@ namespace SampleQuartz
         static async Task MainAsync()
         {
             var schedulerFactory = new StdSchedulerFactory();
-            var scheduler = await schedulerFactory.GetScheduler();
+            scheduler = await schedulerFactory.GetScheduler();
             await scheduler.Start();
             Console.WriteLine($"任务调度器已启动");
 
             //添加Listener
-            scheduler.ListenerManager.AddJobListener(new MyJobListener(), GroupMatcher<JobKey>.AnyGroup());
-            scheduler.ListenerManager.AddTriggerListener(new MyTriggerListener(), GroupMatcher<TriggerKey>.AnyGroup());
+            //scheduler.ListenerManager.AddJobListener(new MyJobListener(), GroupMatcher<JobKey>.AnyGroup());
+            //scheduler.ListenerManager.AddTriggerListener(new MyTriggerListener(), GroupMatcher<TriggerKey>.AnyGroup());
 
             //await ScheduleHelloQuartzJob(scheduler);
             await ScheduleSayHelloJob(scheduler);
 
             await Task.Delay(TimeSpan.FromSeconds(5));
-
+         
             //获取JobDetail
             var jobDetail = await scheduler.GetJobDetail(new JobKey("SayHelloJob-Tom", "DemoGroup"));
             if (jobDetail != null)
             {
-                var runSuccess = jobDetail.JobDataMap.Get("RunSuccess");
+                //jobDetail.PersistJobDataAfterExecution
+                   var runSuccess = jobDetail.JobDataMap.Get("RunSuccess");
                 Console.WriteLine($"{jobDetail.Key} run success: {runSuccess}");
             }
             else
@@ -76,15 +97,21 @@ namespace SampleQuartz
                                         .RequestRecovery(true)
                                         .StoreDurably(true)
                                         .Build();
+            //HourlyCalendar cal = new MinuteCalendar();
+            //cal.setMinuteExcluded(47);
+            //cal.setMinuteExcluded(48);
+            //cal.setMinuteExcluded(49);
+            //cal.setMinuteExcluded(50);
+            calandar = new HolidayCalendar();
+            DailyCalendar dailyCalendar = new DailyCalendar(DateBuilder.DateOf(22, 56, 0).DateTime,
+                                                            DateBuilder.DateOf(23, 06, 0).DateTime);
+            // calandar.AddExcludedDate(DateTime.Today);
 
-            var calandar = new HolidayCalendar();
-            calandar.AddExcludedDate(DateTime.Today);
-
-            await scheduler.AddCalendar("holidayCalendar", calandar, false, false);
+            await scheduler.AddCalendar("holidayCalendar", dailyCalendar, false, false);
 
             var trigger = TriggerBuilder.Create()
                                         .WithCronSchedule("*/1 * * * * ?")
-                                        //.ModifiedByCalendar("holidayCalendar")
+                                         .ModifiedByCalendar("holidayCalendar")
                                         .Build();
 
             //添加调度

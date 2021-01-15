@@ -31,7 +31,7 @@ namespace SampleQuartz.Jobs
             {
                 Console.WriteLine($"Prev Run Success:{RunSuccess}");
                 Console.WriteLine($"Hello {UserName}!");
-
+                Console.WriteLine($"Hello {DateTime.Now}!");
                 context.JobDetail.JobDataMap.Put("RunSuccess", true);
             });
         }
