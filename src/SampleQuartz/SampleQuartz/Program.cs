@@ -19,13 +19,24 @@ namespace SampleQuartz
         {
             Task.Run(()=> {
                 MainAsync().Wait();
-           var canlendar = scheduler.GetCalendar("holidayCalendar").GetAwaiter().GetResult() as DailyCalendar;
-                // canlendar.AddExcludedDate(DateTime.Today);
-                canlendar.SetTimeRange(DateBuilder.DateOf(22, 56, 0).DateTime,
-                                                            DateBuilder.DateOf(23, 06, 0).DateTime);
+                var canlendar = scheduler.GetCalendar("holidayCalendar").GetAwaiter().GetResult() as HolidayCalendar;
+
+               
+                canlendar.AddExcludedDate(DateTime.Today);
+               
+                // canlendar.DeleteCalendar("holidayCalendar");
+                scheduler.AddCalendar("holidayCalendar", canlendar, true, true).Wait();
+                Console.WriteLine("holidayCalendar");
+                Task.Delay(TimeSpan.FromSeconds(10)).Wait();
+                var canlendar2 = scheduler.GetCalendar("holidayCalendar").GetAwaiter().GetResult() as HolidayCalendar;
+                canlendar2.RemoveExcludedDate(DateTime.Today);
+                    scheduler.AddCalendar("holidayCalendar", canlendar2, true, true).Wait();
+                
+              
+
                 //DailyCalendar dailyCalendar = new DailyCalendar(DateBuilder.DateOf(22, 56, 0).DateTime,
                 //                                         DateBuilder.DateOf(23, 0, 0).DateTime);
-                Console.WriteLine("holidayCalendar");
+                Console.WriteLine("22holidayCalendar");
             });
           //  Task.Delay(TimeSpan.FromSeconds(3)).Wait();
             //   var calandar = new HolidayCalendar();
@@ -48,8 +59,8 @@ namespace SampleQuartz
             Console.WriteLine($"任务调度器已启动");
 
             //添加Listener
-            //scheduler.ListenerManager.AddJobListener(new MyJobListener(), GroupMatcher<JobKey>.AnyGroup());
-            //scheduler.ListenerManager.AddTriggerListener(new MyTriggerListener(), GroupMatcher<TriggerKey>.AnyGroup());
+          scheduler.ListenerManager.AddJobListener(new MyJobListener(), GroupMatcher<JobKey>.AnyGroup());
+           //scheduler.ListenerManager.AddTriggerListener(new MyTriggerListener(), GroupMatcher<TriggerKey>.AnyGroup());
 
             //await ScheduleHelloQuartzJob(scheduler);
             await ScheduleSayHelloJob(scheduler);
@@ -104,10 +115,10 @@ namespace SampleQuartz
             //cal.setMinuteExcluded(50);
             calandar = new HolidayCalendar();
             DailyCalendar dailyCalendar = new DailyCalendar(DateBuilder.DateOf(22, 56, 0).DateTime,
-                                                            DateBuilder.DateOf(23, 06, 0).DateTime);
+                                                            DateBuilder.DateOf(23, 0, 0).DateTime);
             // calandar.AddExcludedDate(DateTime.Today);
 
-            await scheduler.AddCalendar("holidayCalendar", dailyCalendar, false, false);
+            await scheduler.AddCalendar("holidayCalendar", calandar, false, false);
 
             var trigger = TriggerBuilder.Create()
                                         .WithCronSchedule("*/1 * * * * ?")
