@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace SampleQuartz.Jobs
 {
     [PersistJobDataAfterExecution]
-    [DisallowConcurrentExecution]
+    [DisallowConcurrentExecution] 
     public class SayHelloJob : IJob
     {
         /// <summary>

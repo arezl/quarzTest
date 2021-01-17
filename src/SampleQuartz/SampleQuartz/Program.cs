@@ -19,12 +19,17 @@ namespace SampleQuartz
         {
             Task.Run(()=> {
                 MainAsync().Wait();
-           var canlendar = scheduler.GetCalendar("holidayCalendar").GetAwaiter().GetResult() as DailyCalendar;
-                // canlendar.AddExcludedDate(DateTime.Today);
-                canlendar.SetTimeRange(DateBuilder.DateOf(22, 56, 0).DateTime,
-                                                            DateBuilder.DateOf(23, 06, 0).DateTime);
-                //DailyCalendar dailyCalendar = new DailyCalendar(DateBuilder.DateOf(22, 56, 0).DateTime,
-                //                                         DateBuilder.DateOf(23, 0, 0).DateTime);
+           //var canlendar = scheduler.GetCalendar("holidayCalendar").GetAwaiter().GetResult() as DailyCalendar;
+           //     // canlendar.AddExcludedDate(DateTime.Today);
+           //     Task.Delay(TimeSpan.FromSeconds(10));
+              
+           //     canlendar.SetTimeRange(DateBuilder.DateOf(0, 10, 0).DateTime,
+           //                                                 DateBuilder.DateOf(0, 11, 0).DateTime);
+           //     canlendar.InvertTimeRange = true; 
+           //     //    
+           //     scheduler.AddCalendar("holidayCalendar",canlendar,true,true);
+               var test= scheduler.GetTrigger(new TriggerKey("test")).GetAwaiter().GetResult();
+               // DateBuilder.DateOf(23, 0, 0).DateTime))
                 Console.WriteLine("holidayCalendar");
             });
           //  Task.Delay(TimeSpan.FromSeconds(3)).Wait();
@@ -35,7 +40,7 @@ namespace SampleQuartz
             //  calandar.AddExcludedDate()
             //    scheduler.AddCalendar("holidayCalendar", calandar, false, false).Wait();
 
-            Task.Delay(TimeSpan.FromSeconds(100)).Wait();
+            Task.Delay(TimeSpan.FromSeconds(1000)).Wait();
             //等待输入，阻塞应用程序退出
             Console.ReadKey();
         }
@@ -103,15 +108,18 @@ namespace SampleQuartz
             //cal.setMinuteExcluded(49);
             //cal.setMinuteExcluded(50);
             calandar = new HolidayCalendar();
-            DailyCalendar dailyCalendar = new DailyCalendar(DateBuilder.DateOf(22, 56, 0).DateTime,
-                                                            DateBuilder.DateOf(23, 06, 0).DateTime);
+            DailyCalendar dailyCalendar = new DailyCalendar(DateBuilder.DateOf(0, 9, 0).DateTime,
+                                                            DateBuilder.DateOf(0, 10, 0).DateTime);
+            dailyCalendar.InvertTimeRange = true;
+            
             // calandar.AddExcludedDate(DateTime.Today);
 
-            await scheduler.AddCalendar("holidayCalendar", dailyCalendar, false, false);
+            await scheduler.AddCalendar("holidayCalendar", dailyCalendar, true, true);
 
-            var trigger = TriggerBuilder.Create()
+            var trigger = TriggerBuilder.Create().ModifiedByCalendar("holidayCalendar")
                                         .WithCronSchedule("*/1 * * * * ?")
-                                         .ModifiedByCalendar("holidayCalendar")
+                                        .WithIdentity("test")
+                                         
                                         .Build();
 
             //添加调度
