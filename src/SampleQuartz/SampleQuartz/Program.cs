@@ -22,7 +22,7 @@ namespace SampleQuartz
                 var canlendar = scheduler.GetCalendar("holidayCalendar").GetAwaiter().GetResult() as HolidayCalendar;
 
                
-                canlendar.AddExcludedDate(DateTime.Today);
+                canlendar.AddExcludedDate(DateTime.Now.AddDays(1));
                
                 // canlendar.DeleteCalendar("holidayCalendar");
                 scheduler.AddCalendar("holidayCalendar", canlendar, true, true).Wait();
@@ -31,8 +31,15 @@ namespace SampleQuartz
                 var canlendar2 = scheduler.GetCalendar("holidayCalendar").GetAwaiter().GetResult() as HolidayCalendar;
                 canlendar2.RemoveExcludedDate(DateTime.Today);
                     scheduler.AddCalendar("holidayCalendar", canlendar2, true, true).Wait();
-                
-              
+            
+                var jobDetail =  scheduler.GetJobDetail(new JobKey("SayHelloJob-Tom", "DemoGroup")).GetAwaiter().GetResult();
+             var trigger=   scheduler.GetTriggersOfJob(new JobKey("SayHelloJob-Tom", "DemoGroup")).GetAwaiter().GetResult();
+                if (jobDetail != null)
+                {
+                    //jobDetail.PersistJobDataAfterExecution
+                    var runSuccess = jobDetail.JobDataMap.Get("RunSuccess");
+                    Console.WriteLine($"{jobDetail.Key} run success: {runSuccess}");
+                }
 
                 //DailyCalendar dailyCalendar = new DailyCalendar(DateBuilder.DateOf(22, 56, 0).DateTime,
                 //                                         DateBuilder.DateOf(23, 0, 0).DateTime);
@@ -116,12 +123,13 @@ namespace SampleQuartz
             calandar = new HolidayCalendar();
             DailyCalendar dailyCalendar = new DailyCalendar(DateBuilder.DateOf(22, 56, 0).DateTime,
                                                             DateBuilder.DateOf(23, 0, 0).DateTime);
-            // calandar.AddExcludedDate(DateTime.Today);
+       //   calandar.AddExcludedDate(DateTime.Today);
 
             await scheduler.AddCalendar("holidayCalendar", calandar, false, false);
 
             var trigger = TriggerBuilder.Create()
                                         .WithCronSchedule("*/1 * * * * ?")
+                                        .WithIdentity("test")
                                          .ModifiedByCalendar("holidayCalendar")
                                         .Build();
 
