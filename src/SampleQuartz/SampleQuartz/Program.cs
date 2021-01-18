@@ -19,18 +19,30 @@ namespace SampleQuartz
         {
             Task.Run(()=> {
                 MainAsync().Wait();
-           //var canlendar = scheduler.GetCalendar("holidayCalendar").GetAwaiter().GetResult() as DailyCalendar;
-           //     // canlendar.AddExcludedDate(DateTime.Today);
-           //     Task.Delay(TimeSpan.FromSeconds(10));
-              
-           //     canlendar.SetTimeRange(DateBuilder.DateOf(0, 10, 0).DateTime,
-           //                                                 DateBuilder.DateOf(0, 11, 0).DateTime);
-           //     canlendar.InvertTimeRange = true; 
-           //     //    
-           //     scheduler.AddCalendar("holidayCalendar",canlendar,true,true);
-               var test= scheduler.GetTrigger(new TriggerKey("test")).GetAwaiter().GetResult();
+                var canlendar = scheduler.GetCalendar("holidayCalendar").GetAwaiter().GetResult() as DailyCalendar;
+                // canlendar.AddExcludedDate(DateTime.Today);
+                Task.Delay(TimeSpan.FromSeconds(10));
+
+                canlendar.SetTimeRange("07:59", "08:00");
+                canlendar.InvertTimeRange = true;
+                //    
+                scheduler.AddCalendar("holidayCalendar", canlendar, true, true);
+                // retrieve the trigger
+                ITrigger oldTrigger = scheduler.GetTrigger(new TriggerKey("test")).GetAwaiter().GetResult();
+
+                // obtain a builder that would produce the trigger
+                TriggerBuilder tb = oldTrigger.GetTriggerBuilder();
+
+                // update the schedule associated with the builder, and build the new trigger// (other builder methods could be called, to change the trigger in any desired way)
+                ITrigger newTrigger = tb.ModifiedByCalendar("holidayCalendar")
+                                        .WithCronSchedule("*/1 * * * * ?")
+                                        .WithIdentity("test")
+                .Build();
+
+                scheduler.RescheduleJob(new TriggerKey("test"), newTrigger);
+                var test= scheduler.GetTrigger(new TriggerKey("test")).GetAwaiter().GetResult();
                // DateBuilder.DateOf(23, 0, 0).DateTime))
-                Console.WriteLine("holidayCalendar");
+                Console.WriteLine("11111111holidayCalendar");
             });
           //  Task.Delay(TimeSpan.FromSeconds(3)).Wait();
             //   var calandar = new HolidayCalendar();
@@ -99,7 +111,6 @@ namespace SampleQuartz
                                             new KeyValuePair<string, object>("RunSuccess", false)
                                         })
                                         .WithIdentity("SayHelloJob-Tom", "DemoGroup")
-                                        .RequestRecovery(true)
                                         .StoreDurably(true)
                                         .Build();
             //HourlyCalendar cal = new MinuteCalendar();
@@ -108,18 +119,17 @@ namespace SampleQuartz
             //cal.setMinuteExcluded(49);
             //cal.setMinuteExcluded(50);
             calandar = new HolidayCalendar();
-            DailyCalendar dailyCalendar = new DailyCalendar(DateBuilder.DateOf(0, 9, 0).DateTime,
-                                                            DateBuilder.DateOf(0, 10, 0).DateTime);
+            DailyCalendar dailyCalendar = new DailyCalendar("23:18", "23:20");
             dailyCalendar.InvertTimeRange = true;
             
             // calandar.AddExcludedDate(DateTime.Today);
 
-            await scheduler.AddCalendar("holidayCalendar", dailyCalendar, true, true);
+            await scheduler.AddCalendar("holidayCalendar", dailyCalendar, false, false);
 
-            var trigger = TriggerBuilder.Create().ModifiedByCalendar("holidayCalendar")
+            var trigger = TriggerBuilder.Create()
                                         .WithCronSchedule("*/1 * * * * ?")
                                         .WithIdentity("test")
-                                         
+                                         .ModifiedByCalendar("holidayCalendar")
                                         .Build();
 
             //添加调度
